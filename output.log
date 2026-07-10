@@ -9,4 +9,18 @@ load:0x40078000,len:11456
 ho 0 tail 12 room 4
 load:0x40080400,len:2972
 entry 0x400805dc
-Hello, ESP32!
+--- SYSTEM BOOT ---
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
+Current: 4.88A, Voltage: 21.49V
