@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENERGY-METER-01 // HMI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.14.1/mqtt.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#0A1316;
+  --panel:#0F1B20;
+  --panel-2:#132228;
+  --border:#1D2E35;
+  --border-lit:#2A4048;
+  --text:#DCE8EC;
+  --text-dim:#7B939C;
+  --text-faint:#44585F;
+  --cyan:#2FE0D6;
+  --cyan-dim:#164A47;
+  --amber:#F2A93B;
+  --amber-dim:#4A3819;
+  --red:#E85D6B;
+  --red-dim:#4A1E24;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+::selection{background:var(--cyan-dim);}
+
+.wrap{max-width:1320px;margin:0 auto;padding:18px 20px 60px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  border:1px solid var(--border);border-radius:6px;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  padding:14px 18px;margin-bottom:16px;flex-wrap:wrap;gap:12px;
+}
+.brand{display:flex;flex-direction:column;gap:2px;}
+.brand .id{font-size:11px;letter-spacing:.14em;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.brand .title{font-size:19px;font-weight:600;letter-spacing:.01em;}
+.badges{display:flex;gap:8px;flex-wrap:wrap;}
+.badge{
+  display:flex;align-items:center;gap:6px;
+  border:1px solid var(--border);border-radius:4px;
+  padding:6px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);
+  background:var(--panel);
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);flex:none;}
+.badge.on{color:var(--cyan);border-color:var(--border-lit);}
+.badge.on .dot{background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+.badge.warn{color:var(--amber);border-color:#4A3819;}
+.badge.warn .dot{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+.badge.off{color:var(--red);border-color:#4A1E24;}
+.badge.off .dot{background:var(--red);box-shadow:0 0 6px var(--red);}
+
+/* ---------- Layout ---------- */
+.grid{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;}
+@media (max-width:900px){.grid{grid-template-columns:1fr;}}
+.panel{
+  border:1px solid var(--border);border-radius:6px;background:var(--panel);
+  padding:16px 18px;margin-bottom:16px;
+}
+.panel h2{
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);
+  font-family:'IBM Plex Mono',monospace;font-weight:500;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel h2 .sub{color:var(--text-faint);text-transform:none;letter-spacing:0;}
+
+/* ---------- Readouts ---------- */
+.readouts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.readout{
+  border:1px solid var(--border);border-radius:6px;padding:14px 16px;
+  background:var(--panel-2);position:relative;overflow:hidden;
+}
+.readout .label{font-size:11px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;}
+.readout .value{font-family:'IBM Plex Mono',monospace;font-size:36px;font-weight:600;color:var(--cyan);line-height:1;}
+.readout .unit{font-size:14px;color:var(--text-dim);margin-left:4px;}
+.readout .bar-track{height:4px;background:var(--border);border-radius:2px;margin-top:12px;overflow:hidden;}
+.readout .bar-fill{height:100%;background:var(--cyan);width:0%;transition:width .4s ease,background .3s ease;}
+.readout.crit .value{color:var(--red);}
+.readout.crit .bar-fill{background:var(--red);}
+
+canvas#chart{width:100%;height:220px;display:block;}
+.chart-legend{display:flex;gap:16px;margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);}
+.chart-legend span{display:flex;align-items:center;gap:6px;}
+.chart-legend i{width:10px;height:2px;display:inline-block;}
+
+/* ---------- Alerts feed ---------- */
+.feed{max-height:260px;overflow-y:auto;display:flex;flex-direction:column-reverse;gap:6px;}
+.feed::-webkit-scrollbar{width:6px;}
+.feed::-webkit-scrollbar-thumb{background:var(--border-lit);border-radius:3px;}
+.feed-item{
+  display:flex;gap:10px;align-items:baseline;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;
+  border-left:2px solid var(--border-lit);padding:6px 10px;background:var(--panel-2);border-radius:0 4px 4px 0;
+}
+.feed-item.alert{border-left-color:var(--red);}
+.feed-item .t{color:var(--text-faint);flex:none;}
+.feed-item .m{color:var(--text-dim);}
+.feed-item.alert .m{color:var(--red);}
+.feed-empty{color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 0;}
+
+/* ---------- Buffer ring (signature element) ---------- */
+.ring-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0 4px;}
+.ring-status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-dim);text-align:center;}
+.ring-status b{color:var(--text);}
+.path-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:3px;font-family:'IBM Plex Mono',monospace;}
+.path-label.fast{background:var(--cyan-dim);color:var(--cyan);}
+.path-label.store{background:var(--amber-dim);color:var(--amber);}
+
+/* ---------- Controls ---------- */
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;}
+.field input{
+  width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:4px;
+  color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:14px;padding:9px 10px;
+  outline:none;transition:border-color .2s;
+}
+.field input:focus{border-color:var(--cyan);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn{
+  width:100%;background:var(--panel-2);border:1px solid var(--border-lit);border-radius:4px;
+  color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  padding:10px 12px;cursor:pointer;transition:all .15s;margin-top:4px;
+}
+.btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.btn.primary{background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan);}
+.btn.primary:hover{background:var(--cyan);color:#062421;}
+.btn.danger{border-color:#4A1E24;}
+.btn.danger.active{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.btn.danger.active:hover{background:var(--red);color:#2A0A0E;}
+.hint{font-size:11px;color:var(--text-faint);margin-top:8px;line-height:1.5;}
+.hint code{color:var(--text-dim);}
+
+.offline-banner{
+  display:none;align-items:center;gap:10px;
+  background:var(--red-dim);border:1px solid #6b2732;color:var(--red);
+  border-radius:6px;padding:10px 14px;margin-bottom:16px;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.03em;
+}
+.offline-banner.show{display:flex;}
+.offline-banner .dot{background:var(--red);box-shadow:0 0 6px var(--red);}
+
+footer{margin-top:6px;text-align:center;color:var(--text-faint);font-size:11px;font-family:'IBM Plex Mono',monospace;}
+
+/* ---------- Spike toast ---------- */
+#toastStack{position:fixed;top:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:999;max-width:320px;}
+.toast{
+  background:var(--red-dim);border:1px solid var(--red);border-radius:6px;
+  padding:12px 14px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  animation:toastIn .25s ease, toastOut .3s ease 4.2s forwards;
+}
+.toast .head{display:flex;align-items:center;gap:6px;color:var(--red);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:11px;margin-bottom:4px;}
+.toast .dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red);flex:none;}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+@keyframes toastOut{to{opacity:0;transform:translateX(20px);}}
+</style>
+</head>
+<body>
+<div id="toastStack"></div>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="id mono">wokwi / esp32-energy-meter-01</div>
+      <div class="title">Energy Meter HMI</div>
+    </div>
+    <div class="badges">
+      <div class="badge" id="badgeBroker"><span class="dot"></span><span id="badgeBrokerText">Broker link — connecting</span></div>
+      <div class="badge" id="badgeWifi"><span class="dot"></span><span id="badgeWifiText">Wi-Fi — —</span></div>
+      <div class="badge" id="badgeOutage"><span class="dot"></span><span id="badgeOutageText">Outage sim — off</span></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: live data -->
+    <div>
+      <div class="readouts">
+        <div class="readout" id="readoutCurrent">
+          <div class="label">Current</div>
+          <div><span class="value mono" id="valCurrent">--</span><span class="unit">A</span></div>
+          <div class="bar-track"><div class="bar-fill" id="barCurrent"></div></div>
+        </div>
+        <div class="readout" id="readoutVoltage">
+          <div class="label">Voltage</div>
+          <div><span class="value mono" id="valVoltage">--</span><span class="unit">V</span></div>
+          <div class="bar-track"><div class="bar-fill" id="barVoltage"></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Live Telemetry <span class="sub" id="seqLabel">seq —</span></h2>
+        <canvas id="chart"></canvas>
+        <div class="chart-legend">
+          <span><i style="background:var(--cyan)"></i>Current % of threshold</span>
+          <span><i style="background:var(--amber)"></i>Voltage % of threshold</span>
+          <span><i style="background:var(--text-faint)"></i>100% = threshold</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Event Log <span class="sub">spikes &amp; network transitions</span></h2>
+        <div class="feed" id="feed">
+          <div class="feed-empty">Waiting for events…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: control & resilience -->
+    <div>
+      <div class="panel">
+        <h2>Store-and-Forward Buffer</h2>
+        <div class="ring-wrap">
+          <svg id="ring" width="180" height="180" viewBox="0 0 180 180"></svg>
+          <div class="ring-status"><b id="bufCountLabel">0</b> / <span id="bufSizeLabel">20</span> slots buffered</div>
+          <div class="path-label fast" id="pathLabel">Fast-path telemetry</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Anomaly Thresholds</h2>
+        <div class="row2">
+          <div class="field">
+            <label>Max current (A)</label>
+            <input type="number" id="inMaxCurrent" step="0.1" placeholder="100.0">
+          </div>
+          <div class="field">
+            <label>Max voltage (V)</label>
+            <input type="number" id="inMaxVoltage" step="0.1" placeholder="440.0">
+          </div>
+        </div>
+        <button class="btn primary" id="btnApplyThreshold">Apply thresholds</button>
+        <div class="hint">Active on device: <code class="mono" id="activeThresholds">— A / — V</code>. Publishes to <code class="mono">wokwi/energy-meter/control</code>.</div>
+      </div>
+
+      <div class="panel">
+        <h2>Network Outage Simulation</h2>
+        <button class="btn danger" id="btnOutageToggle">Inject outage</button>
+        <div class="hint">Mirrors the physical button on GPIO4 in Wokwi — either source toggles the same flag on the device. Current state is read back from the device's health heartbeat, not assumed.</div>
+      </div>
+
+      <div class="panel">
+        <h2>Connection</h2>
+        <div class="hint" style="margin-top:0;">
+          Broker: <code class="mono">wss://broker.hivemq.com:8884/mqtt</code><br>
+          This is a shared public broker — anyone with these topic names can see this traffic.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Dashboard subscribes to telemetry / status / alerts / health topics and publishes JSON commands on the control topic. No polling — fully event-driven over MQTT.</footer>
+</div>
+
+<script>
+// ---------------- Config: must match firmware topic names exactly ----------------
+const TOPIC_TELEMETRY = "wokwi/energy-meter/telemetry";
+const TOPIC_STATUS    = "wokwi/energy-meter/status";
+const TOPIC_ALERTS    = "wokwi/energy-meter/alerts";
+const TOPIC_HEALTH    = "wokwi/energy-meter/health";
+const TOPIC_CONTROL   = "wokwi/energy-meter/control";
+const BROKER_URL = "wss://broker.hivemq.com:8884/mqtt";
+
+let maxCurrent = 100.0;
+let maxVoltage = 440.0;
+let currentOutageState = false;
+let deviceEverSeen = false;
+
+// ---------------- DOM refs ----------------
+const el = id => document.getElementById(id);
+const badgeBroker = el('badgeBroker'), badgeBrokerText = el('badgeBrokerText');
+const badgeWifi = el('badgeWifi'), badgeWifiText = el('badgeWifiText');
+const badgeOutage = el('badgeOutage'), badgeOutageText = el('badgeOutageText');
+const valCurrent = el('valCurrent'), valVoltage = el('valVoltage');
+const barCurrent = el('barCurrent'), barVoltage = el('barVoltage');
+const readoutCurrent = el('readoutCurrent'), readoutVoltage = el('readoutVoltage');
+const seqLabel = el('seqLabel');
+const feed = el('feed');
+const bufCountLabel = el('bufCountLabel'), bufSizeLabel = el('bufSizeLabel');
+const pathLabel = el('pathLabel');
+const activeThresholds = el('activeThresholds');
+
+function setBadge(node, textNode, text, state){
+  node.className = 'badge' + (state ? ' ' + state : '');
+  textNode.textContent = text;
+}
+
+function timeNow(){
+  const d = new Date();
+  return d.toTimeString().slice(0,8);
+}
+
+function showToast(headline, detail){
+  const stack = el('toastStack');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<div class="head"><span class="dot"></span>${headline}</div><div>${detail}</div>`;
+  stack.appendChild(t);
+  setTimeout(() => t.remove(), 4600);
+  while (stack.children.length > 5) stack.removeChild(stack.firstChild);
+}
+
+function addFeedItem(msg, isAlert){
+  const empty = feed.querySelector('.feed-empty');
+  if (empty) empty.remove();
+  const item = document.createElement('div');
+  item.className = 'feed-item' + (isAlert ? ' alert' : '');
+  item.innerHTML = `<span class="t">${timeNow()}</span><span class="m">${msg}</span>`;
+  feed.appendChild(item);
+  while (feed.children.length > 60) feed.removeChild(feed.firstChild);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+// ---------------- Buffer ring (signature element) ----------------
+const RING_SLOTS = 20;
+const ringSvg = el('ring');
+const ringCX = 90, ringCY = 90, ringR = 68, ringRi = 50;
+function buildRing(){
+  ringSvg.innerHTML = '';
+  for (let i=0;i<RING_SLOTS;i++){
+    const a0 = (i/RING_SLOTS)*Math.PI*2 - Math.PI/2 + 0.045;
+    const a1 = ((i+1)/RING_SLOTS)*Math.PI*2 - Math.PI/2 - 0.045;
+    const x0o = ringCX + ringR*Math.cos(a0), y0o = ringCY + ringR*Math.sin(a0);
+    const x1o = ringCX + ringR*Math.cos(a1), y1o = ringCY + ringR*Math.sin(a1);
+    const x1i = ringCX + ringRi*Math.cos(a1), y1i = ringCY + ringRi*Math.sin(a1);
+    const x0i = ringCX + ringRi*Math.cos(a0), y0i = ringCY + ringRi*Math.sin(a0);
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M ${x0o} ${y0o} A ${ringR} ${ringR} 0 0 1 ${x1o} ${y1o} L ${x1i} ${y1i} A ${ringRi} ${ringRi} 0 0 0 ${x0i} ${y0i} Z`);
+    path.setAttribute('fill', '#1D2E35');
+    path.setAttribute('id', 'slot'+i);
+    path.setAttribute('stroke', '#0A1316');
+    path.setAttribute('stroke-width', '1');
+    ringSvg.appendChild(path);
+  }
+  const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+  label.setAttribute('x', ringCX); label.setAttribute('y', ringCY+5);
+  label.setAttribute('text-anchor','middle');
+  label.setAttribute('font-family','IBM Plex Mono, monospace');
+  label.setAttribute('font-size','22'); label.setAttribute('font-weight','600');
+  label.setAttribute('fill', '#DCE8EC');
+  label.setAttribute('id','ringCenterLabel');
+  label.textContent = '0';
+  ringSvg.appendChild(label);
+}
+buildRing();
+
+function updateRing(bufCount, bufSize, networkAvailable){
+  const fillColor = networkAvailable ? '#F2A93B' : '#E85D6B'; // amber while draining slots on recovery, red while accumulating offline
+  for (let i=0;i<RING_SLOTS;i++){
+    const slot = el('slot'+i);
+    if (!slot) continue;
+    slot.setAttribute('fill', i < bufCount ? fillColor : '#1D2E35');
+  }
+  el('ringCenterLabel').textContent = bufCount;
+  bufCountLabel.textContent = bufCount;
+  bufSizeLabel.textContent = bufSize;
+  if (networkAvailable){
+    pathLabel.textContent = bufCount > 0 ? 'Flushing backlog' : 'Fast-path telemetry';
+    pathLabel.className = 'path-label fast';
+  } else {
+    pathLabel.textContent = 'Store-and-forward (buffering)';
+    pathLabel.className = 'path-label store';
+  }
+}
+
+// ---------------- Chart ----------------
+const canvas = el('chart');
+const ctx = canvas.getContext('2d');
+let seriesCurrent = [], seriesVoltage = [];
+const MAX_POINTS = 60;
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * devicePixelRatio;
+  canvas.height = 220 * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  drawChart();
+}
+window.addEventListener('resize', resizeCanvas);
+
+function drawChart(){
+  const w = canvas.getBoundingClientRect().width, h = 220;
+  ctx.clearRect(0,0,w,h);
+  // gridlines
+  ctx.strokeStyle = '#1D2E35';
+  ctx.lineWidth = 1;
+  for (let i=0;i<=4;i++){
+    const y = h - (h*i/4);
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+  }
+  // 100% threshold line
+  const y100 = h - h*1.0;
+  ctx.strokeStyle = '#44585F';
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(0, Math.max(1,y100)); ctx.lineTo(w, Math.max(1,y100)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  const plot = (series, color) => {
+    if (series.length < 2) return;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    series.forEach((v,i)=>{
+      const x = (i/(MAX_POINTS-1))*w;
+      const y = h - Math.min(1.15, v)*h*0.85 - h*0.05;
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  };
+  plot(seriesCurrent, '#2FE0D6');
+  plot(seriesVoltage, '#F2A93B');
+}
+
+function pushPoint(currentPct, voltagePct){
+  seriesCurrent.push(currentPct); seriesVoltage.push(voltagePct);
+  if (seriesCurrent.length > MAX_POINTS) seriesCurrent.shift();
+  if (seriesVoltage.length > MAX_POINTS) seriesVoltage.shift();
+  drawChart();
+}
+
+// ---------------- MQTT ----------------
+const clientId = 'hmi-dashboard-' + Math.random().toString(16).slice(2,10);
+setBadge(badgeBroker, badgeBrokerText, 'Broker link — connecting', '');
+
+const client = mqtt.connect(BROKER_URL, {
+  clientId,
+  clean: true,
+  reconnectPeriod: 3000,
+  connectTimeout: 10000,
+});
+
+client.on('connect', () => {
+  setBadge(badgeBroker, badgeBrokerText, 'Broker link — online', 'on');
+  [TOPIC_TELEMETRY, TOPIC_STATUS, TOPIC_ALERTS, TOPIC_HEALTH].forEach(t => client.subscribe(t));
+  addFeedItem('Dashboard connected to broker', false);
+});
+
+client.on('reconnect', () => setBadge(badgeBroker, badgeBrokerText, 'Broker link — reconnecting', 'warn'));
+client.on('close', () => setBadge(badgeBroker, badgeBrokerText, 'Broker link — offline', 'off'));
+client.on('error', (e) => { setBadge(badgeBroker, badgeBrokerText, 'Broker link — error', 'off'); console.error(e); });
+
+client.on('message', (topic, payloadBuf) => {
+  const payload = payloadBuf.toString();
+
+  if (topic === TOPIC_STATUS){
+    const online = payload === 'online';
+    deviceEverSeen = true;
+    addFeedItem(online ? 'Device came online' : 'Device went offline (LWT / clean disconnect)', !online);
+    return;
+  }
+
+  let data;
+  try { data = JSON.parse(payload); } catch(e){ return; }
+
+  if (topic === TOPIC_TELEMETRY){
+    seqLabel.textContent = 'seq ' + data.seq;
+    valCurrent.textContent = data.current.toFixed(2);
+    valVoltage.textContent = data.voltage.toFixed(2);
+
+    const curPct = data.current / maxCurrent;
+    const voltPct = data.voltage / maxVoltage;
+    barCurrent.style.width = Math.min(100, curPct*100) + '%';
+    barVoltage.style.width = Math.min(100, voltPct*100) + '%';
+    readoutCurrent.classList.toggle('crit', curPct > 0.9);
+    readoutVoltage.classList.toggle('crit', voltPct > 0.9);
+    barCurrent.style.background = curPct > 0.9 ? '#E85D6B' : '#2FE0D6';
+    barVoltage.style.background = voltPct > 0.9 ? '#E85D6B' : '#F2A93B';
+
+    pushPoint(curPct, voltPct);
+  }
+
+  if (topic === TOPIC_ALERTS){
+    const msg = `SPIKE — current ${data.current.toFixed(2)}A, voltage ${data.voltage.toFixed(2)}V (out of range)`;
+    addFeedItem(msg, true);
+    showToast('Anomaly detected', `Current ${data.current.toFixed(2)}A / Voltage ${data.voltage.toFixed(2)}V — outside configured thresholds`);
+  }
+
+  if (topic === TOPIC_HEALTH){
+    setBadge(badgeWifi, badgeWifiText, 'Wi-Fi — ' + (data.wifi ? 'up' : 'down'), data.wifi ? 'on' : 'off');
+
+    currentOutageState = !!data.outage;
+    setBadge(badgeOutage, badgeOutageText, 'Outage sim — ' + (currentOutageState?'on':'off'), currentOutageState?'warn':'');
+    const btn = el('btnOutageToggle');
+    btn.textContent = currentOutageState ? 'Clear outage' : 'Inject outage';
+    btn.classList.toggle('active', currentOutageState);
+
+    updateRing(data.bufCount, data.bufSize, !!data.networkAvailable);
+
+    if (typeof data.maxCurrent === 'number') maxCurrent = data.maxCurrent;
+    if (typeof data.maxVoltage === 'number') maxVoltage = data.maxVoltage;
+    activeThresholds.textContent = `${maxCurrent.toFixed(1)} A / ${maxVoltage.toFixed(1)} V`;
+    if (!el('inMaxCurrent').dataset.touched) el('inMaxCurrent').placeholder = maxCurrent.toFixed(1);
+    if (!el('inMaxVoltage').dataset.touched) el('inMaxVoltage').placeholder = maxVoltage.toFixed(1);
+  }
+});
+
+// ---------------- Controls ----------------
+el('inMaxCurrent').addEventListener('input', e => e.target.dataset.touched = '1');
+el('inMaxVoltage').addEventListener('input', e => e.target.dataset.touched = '1');
+
+el('btnApplyThreshold').addEventListener('click', () => {
+  const mc = parseFloat(el('inMaxCurrent').value);
+  const mv = parseFloat(el('inMaxVoltage').value);
+  if (isNaN(mc) && isNaN(mv)) return;
+  const cmd = { cmd: 'threshold' };
+  if (!isNaN(mc)) cmd.maxCurrent = mc;
+  if (!isNaN(mv)) cmd.maxVoltage = mv;
+  client.publish(TOPIC_CONTROL, JSON.stringify(cmd));
+  addFeedItem(`Threshold update sent: ${!isNaN(mc)?mc+'A ':''}${!isNaN(mv)?mv+'V':''}`, false);
+});
+
+el('btnOutageToggle').addEventListener('click', () => {
+  const next = !currentOutageState;
+  client.publish(TOPIC_CONTROL, JSON.stringify({ cmd:'outage', state: next ? 1 : 0 }));
+  addFeedItem(next ? 'Outage injected from HMI dashboard' : 'Outage cleared from HMI dashboard', false);
+});
+
+resizeCanvas();
+</script>
+</body>
+</html>
