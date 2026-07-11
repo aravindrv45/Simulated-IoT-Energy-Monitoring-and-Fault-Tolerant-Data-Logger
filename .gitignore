@@ -4,3 +4,7 @@
 .vscode/launch.json
 .vscode/ipch
 wokwi-cli.exe
+
+git remote add origin https://github.com/aravindrv45/Simulated IoT Energy Monitoring and Fault-Tolerant Data Logger.git
+git branch -M main
+git push -u origin main

@@ -10,17 +10,88 @@ ho 0 tail 12 room 4
 load:0x40080400,len:2972
 entry 0x400805dc
 --- SYSTEM BOOT ---
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
-Current: 4.88A, Voltage: 21.49V
+Connecting to Wi-Fi..
+Wi-Fi connected, IP = 10.13.37.2
+Connecting to MQTT broker...connected
+>>> NETWORK RESTORED — resuming fast-path telemetry, flushing backlog
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=1
+[MQTT TX] {"seq":0,"current":4.88,"voltage":21.49,"ts":3414}
+[MQTT TX] {"seq":1,"current":4.88,"voltage":21.49,"ts":4414}
+[MQTT TX] {"seq":2,"current":4.88,"voltage":21.49,"ts":5414}
+[MQTT TX] {"seq":3,"current":4.88,"voltage":21.49,"ts":6414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=4
+[MQTT TX] {"seq":4,"current":4.88,"voltage":21.49,"ts":7414}
+[MQTT TX] {"seq":5,"current":4.88,"voltage":21.49,"ts":8414}
+[MQTT TX] {"seq":6,"current":4.88,"voltage":21.49,"ts":9414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=7
+[MQTT TX] {"seq":7,"current":4.88,"voltage":21.49,"ts":10414}
+[MQTT TX] {"seq":8,"current":4.88,"voltage":21.49,"ts":11414}
+[MQTT TX] {"seq":9,"current":4.88,"voltage":21.49,"ts":12414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=10
+[MQTT TX] {"seq":10,"current":4.88,"voltage":21.49,"ts":13414}
+[MQTT TX] {"seq":11,"current":4.88,"voltage":21.49,"ts":14414}
+[MQTT TX] {"seq":12,"current":4.88,"voltage":21.49,"ts":15414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=13
+[MQTT TX] {"seq":13,"current":4.88,"voltage":21.49,"ts":16414}
+[MQTT TX] {"seq":14,"current":4.88,"voltage":21.49,"ts":17414}
+[MQTT TX] {"seq":15,"current":4.88,"voltage":21.49,"ts":18414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=16
+[MQTT TX] {"seq":16,"current":4.88,"voltage":21.49,"ts":19414}
+[MQTT TX] {"seq":17,"current":4.88,"voltage":21.49,"ts":20414}
+[MQTT TX] {"seq":18,"current":4.88,"voltage":21.49,"ts":21414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=19
+[MQTT TX] {"seq":19,"current":4.88,"voltage":21.49,"ts":22414}
+[MQTT TX] {"seq":20,"current":4.88,"voltage":21.49,"ts":23414}
+[MQTT TX] {"seq":21,"current":4.88,"voltage":21.49,"ts":24414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=22
+[MQTT TX] {"seq":22,"current":4.88,"voltage":21.49,"ts":25414}
+[MQTT TX] {"seq":23,"current":4.88,"voltage":21.49,"ts":26414}
+[MQTT TX] publish failed
+[MQTT TX] publish failed
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":24,"current":4.88,"voltage":21.49,"ts":27414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=25
+[MQTT TX] publish failed
+[MQTT TX] publish failed
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":25,"current":4.88,"voltage":21.49,"ts":28414}
+[MQTT TX] {"seq":26,"current":4.88,"voltage":21.49,"ts":29414}
+[MQTT TX] {"seq":27,"current":4.88,"voltage":21.49,"ts":30414}
+Connecting to MQTT broker...connected
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=29
+[MQTT TX] {"seq":28,"current":4.88,"voltage":21.49,"ts":31414}
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":29,"current":4.88,"voltage":21.49,"ts":32414}
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":30,"current":4.88,"voltage":21.49,"ts":33414}
+[MQTT TX] {"seq":31,"current":4.88,"voltage":21.49,"ts":34414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=32
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":32,"current":4.88,"voltage":21.49,"ts":35414}
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":33,"current":4.88,"voltage":21.49,"ts":36414}
+[MQTT TX] {"seq":34,"current":4.88,"voltage":21.49,"ts":37414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=35
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":35,"current":4.88,"voltage":21.49,"ts":38414}
+[MQTT TX] {"seq":36,"current":4.88,"voltage":21.49,"ts":39414}
+[MQTT TX] {"seq":37,"current":4.88,"voltage":21.49,"ts":40414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=38
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":38,"current":4.88,"voltage":21.49,"ts":41414}
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":39,"current":4.88,"voltage":21.49,"ts":42414}
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":40,"current":4.88,"voltage":21.49,"ts":43414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=41
+[MQTT TX] {"seq":41,"current":4.88,"voltage":21.49,"ts":44414}
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":42,"current":4.88,"voltage":21.49,"ts":45414}
+[MQTT TX] {"seq":43,"current":4.88,"voltage":21.49,"ts":46414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networkAvailable=YES bufCount=0/20 seq=44
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":44,"current":4.88,"voltage":21.49,"ts":47414}
+[MQTT TX] {"seq":45,"current":4.88,"voltage":21.49,"ts":48414}
+Connecting to MQTT broker...connected
+[MQTT TX] {"seq":46,"current":4.88,"voltage":21.49,"ts":49414}
+[STATUS] wifi=UP mqtt=UP simulateOutage=OFF networ
