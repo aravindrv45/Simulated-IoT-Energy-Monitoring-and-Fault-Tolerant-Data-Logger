@@ -1,0 +1,7 @@
+[wokwi]
+version = 1
+firmware = '.pio/build/esp32dev/firmware.bin'
+elf = '.pio/build/esp32dev/firmware.elf'
+# Serial2 (RX2/TX2, the Modbus RTU link) is wired to $serialMonitor below,
+# so this forwards the RS-485 traffic, not the debug UART0 prints.
+rfc2217ServerPort = 4001

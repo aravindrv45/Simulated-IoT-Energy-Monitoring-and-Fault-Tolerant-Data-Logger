@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start System",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": ["-ExecutionPolicy", "Bypass", "-File", "run_all.ps1"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        }
+    ]
+}

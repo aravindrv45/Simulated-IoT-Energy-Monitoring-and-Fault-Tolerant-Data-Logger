@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "author": "Industrial IoT Gateway Demo - Slave Node (standalone)",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "meter_slave", "top": 62.3, "left": 23.8, "attrs": {} },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_v",
+      "top": 142.7,
+      "left": -259.4,
+      "attrs": { "label": "Voltage Control" }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_c",
+      "top": 257.9,
+      "left": -259.4,
+      "attrs": { "label": "Current Control" }
+    },
+    { "type": "wokwi-dht22", "id": "dht", "top": -47.7, "left": -255, "attrs": {} },
+    { "type": "wokwi-mpu6050", "id": "mpu", "top": -168.98, "left": -266.48, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_thermal",
+      "top": 6.2,
+      "left": -153.6,
+      "attrs": { "color": "red", "label": "Inject Thermal Fault" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_vibe",
+      "top": -147.4,
+      "left": -153.6,
+      "attrs": { "color": "red", "label": "Inject Bearing Fault" }
+    }
+  ],
+  "connections": [
+    [ "meter_slave:TX2", "$serialMonitor:RX", "", [] ],
+    [ "meter_slave:RX2", "$serialMonitor:TX", "", [] ],
+
+    [ "meter_slave:GND.1", "pot_v:GND", "black", [ "v0" ] ],
+    [ "meter_slave:3V3", "pot_v:VCC", "red", [ "v0" ] ],
+    [ "meter_slave:D34", "pot_v:SIG", "blue", [ "v0" ] ],
+
+    [ "meter_slave:GND.1", "pot_c:GND", "black", [ "v0" ] ],
+    [ "meter_slave:3V3", "pot_c:VCC", "red", [ "v0" ] ],
+    [ "meter_slave:D35", "pot_c:SIG", "purple", [ "v0" ] ],
+
+    [ "meter_slave:GND.1", "dht:GND", "black", [ "v0" ] ],
+    [ "meter_slave:3V3", "dht:VCC", "red", [ "v0" ] ],
+    [ "meter_slave:D23", "dht:SDA", "orange", [ "v0" ] ],
+
+    [ "meter_slave:GND.1", "mpu:GND", "black", [ "v0" ] ],
+    [ "meter_slave:3V3", "mpu:VCC", "red", [ "v0" ] ],
+    [ "meter_slave:D21", "mpu:SDA", "blue", [ "v0" ] ],
+    [ "meter_slave:D22", "mpu:SCL", "yellow", [ "v0" ] ],
+
+    [ "meter_slave:GND.1", "btn_thermal:2.l", "black", [ "v0" ] ],
+    [ "meter_slave:D25", "btn_thermal:1.l", "red", [ "v0" ] ],
+
+    [ "meter_slave:GND.1", "btn_vibe:2.l", "black", [ "v0" ] ],
+    [ "meter_slave:D26", "btn_vibe:1.l", "red", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "author": "Industrial IoT Gateway Demo - Gateway Node (standalone)",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "gateway", "top": 62.3, "left": 225.4, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "outage_switch",
+      "top": 140.6,
+      "left": 403.2,
+      "attrs": { "color": "blue", "label": "Simulate Outage" }
+    },
+    { "type": "board-ssd1306", "id": "oled", "top": 22.34, "left": 489.83, "attrs": {} }
+  ],
+  "connections": [
+    [ "gateway:TX2", "$serialMonitor:RX", "", [] ],
+    [ "gateway:RX2", "$serialMonitor:TX", "", [] ],
+
+    [ "gateway:GND.1", "outage_switch:2.l", "black", [ "v0" ] ],
+    [ "gateway:D4", "outage_switch:1.l", "orange", [ "v0" ] ],
+
+    [ "gateway:GND.1", "oled:GND", "black", [ "v0" ] ],
+    [ "gateway:3V3", "oled:VCC", "red", [ "v0" ] ],
+    [ "gateway:D21", "oled:SDA", "blue", [ "v0" ] ],
+    [ "gateway:D22", "oled:SCL", "yellow", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}
